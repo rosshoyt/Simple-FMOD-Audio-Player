@@ -1,5 +1,7 @@
 // Simple-FMOD-Audio-Player.cpp 
-// Ross Hoyt
+// @author Ross Hoyt
+// Seattle University SQ2020
+// CPSC 5910 Graphics/Game Project 
 
 #include <iostream>
 #include <fmod.hpp>
@@ -8,6 +10,15 @@
 FMOD::System* sys;                           // FMOD's low-level audio system
 const char* AUDIO_FILE = "mx_section_1.ogg"; // 00:31:30 loopable music file
 
+/**
+* A simple function which plays a sound file using FMOD's low level audio system.
+* NOTE - For audio playback, the main thread sleeps for a calculated amound of time to allow 
+*        for FMOD's to playback sound - This 'calculating' the playback time is not really 
+*        the 'default' way to use FMOD to play audio from within your OpenGL game
+* 
+* @var filename - relative path to file from project directory. (Can be .OGG, .WAV, .MP3, 
+*                 or any other FMOD-supported audio format)
+*/
 void playSoundFMOD(const char* filename, bool loop = false, int nLoops = 1) {
     // sound    
     FMOD::Sound* sound;
@@ -15,18 +26,15 @@ void playSoundFMOD(const char* filename, bool loop = false, int nLoops = 1) {
     FMOD::Channel* channel;
     // create sound
     sys->createSound(filename, loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF, 0, &sound);
-    
-    // get length of sound file (to allow sound playback by sleeping main thread for this amt of time)
-    unsigned int msLen; 
-    sound->getLength(&msLen, FMOD_TIMEUNIT_MS);
-    //msLen *= nLoops; // adjust playback length by number of requested loops
-
-    // assign channel and begin to play sound
+    // assign channel and play sound in 'paused' mode
     sys->playSound(sound, 0, true /*start paused*/, &channel);
     // actually start the sound
     channel->setPaused(false);
 
-    // let song play by sleeping main thread for some time
+    // calculate playback time needed (not the'default' way to achieve looping audio playback with FMOD...)
+    unsigned int msLen;
+    sound->getLength(&msLen, FMOD_TIMEUNIT_MS);
+    // sleep main thread for total amount of audio playback time
     Sleep(msLen * nLoops);
 }
 
